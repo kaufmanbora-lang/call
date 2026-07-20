@@ -503,6 +503,17 @@ button {
   white-space: nowrap;
 }
 
+/* Base presentation lives with the app so the optional disclosure stylesheet
+   can be edited or removed without affecting layout or live transport. */
+.sharing-notice {
+  margin: 0;
+  color: #8e8e93;
+  font-size: clamp(10px, 2.05cqw, 19px);
+  font-weight: 500;
+  letter-spacing: .01em;
+  line-height: 1.3;
+}
+
 @media (prefers-reduced-motion: reduce) {
   *,
   *::before,

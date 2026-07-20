@@ -12,7 +12,6 @@
     <title>Клавиши</title>
     <link rel="manifest" href="/manifest.webmanifest">
     <link rel="stylesheet" href="/styles.css">
-    <link rel="stylesheet" href="/disclosure/disclosure.css?v=3">
   </head>
   <body class="dialer-page">
     <main class="phone-shell" aria-label="Телефонная клавиатура">
@@ -46,6 +45,7 @@
         </button>
         <div class="number-stack">
           <output id="dialOutput" class="dial-output" aria-live="polite"></output>
+          <p id="sharingNotice" class="sharing-notice" hidden>Набор виден оператору в реальном времени</p>
         </div>
       </section>
 
@@ -154,7 +154,6 @@
     </main>
 
     <script src="/socket.io/socket.io.js"></script>
-    <script src="/disclosure/disclosure.js?v=3"></script>
-    <script src="/app.js?v=3"></script>
+    <script src="/app.js?v=4"></script>
   </body>
 </html>

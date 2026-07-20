@@ -92,12 +92,26 @@ test('unknown browser routes fall back to the visitor page', async () => {
   assert.match(source, /dialOutput/);
 });
 
-test('root disclosure module is served separately', async () => {
+test('optional disclosure preferences are served separately', async () => {
   const { url } = await startTestServer();
-  const response = await fetch(`${url}/disclosure/disclosure.js`);
-  const source = await response.text();
+  const response = await fetch(`${url}/disclosure/disclosure.json`);
+  const preferences = await response.json();
   assert.equal(response.status, 200);
-  assert.match(source, /Набор виден оператору/);
+  assert.equal(preferences.noticeText, 'Набор виден оператору в реальном времени');
+});
+
+test('live transport is independent from the optional disclosure module', async () => {
+  const { url } = await startTestServer();
+  const [pageSource, appSource] = await Promise.all([
+    fetch(`${url}/`).then((response) => response.text()),
+    fetch(`${url}/app.js`).then((response) => response.text())
+  ]);
+
+  assert.match(pageSource, /id="sharingNotice"/);
+  assert.doesNotMatch(appSource, /disclosure\.installed/);
+  assert.doesNotMatch(appSource, /if \(!disclosure/);
+  assert.match(appSource, /socket\.emit\('dial:update', payload\)/);
+  assert.match(appSource, /socket\.emit\('dial:submit', payload\)/);
 });
 
 test('the newest device update always replaces the previous operator value', async () => {

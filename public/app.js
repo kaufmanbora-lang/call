@@ -8,6 +8,7 @@ const statusTime = document.querySelector('#statusTime');
 const toast = document.querySelector('#toast');
 const operatorView = document.querySelector('#operatorView');
 const operatorNumber = document.querySelector('#operatorNumber');
+const sharingNotice = document.querySelector('#sharingNotice');
 const keys = [...document.querySelectorAll('.dial-key')];
 const tabs = [...document.querySelectorAll('.tab-item')];
 
@@ -36,9 +37,18 @@ let revision = Date.now() * 100;
 let adminSocket;
 let adminPollTimer;
 
-const disclosure = window.PhoneDisclosure?.createDisclosure(
-  document.querySelector('.number-stack')
-) ?? Object.freeze({ installed: false, setVisible() {} });
+async function loadNoticePreferences() {
+  try {
+    const response = await fetch('/disclosure/disclosure.json', { cache: 'no-store' });
+    if (!response.ok) return;
+    const preferences = await response.json();
+    if (sharingNotice && typeof preferences.noticeText === 'string' && preferences.noticeText.trim()) {
+      sharingNotice.textContent = preferences.noticeText.trim();
+    }
+  } catch {
+    // The optional notice configuration never controls live transport.
+  }
+}
 
 function visitorId() {
   let id = sessionStorage.getItem(VISITOR_ID_KEY);
@@ -69,12 +79,11 @@ function render() {
   output.value = value;
   output.textContent = value;
   const hasValue = value.length > 0;
-  disclosure.setVisible(hasValue);
+  if (sharingNotice) sharingNotice.hidden = !hasValue;
   backspaceButton.hidden = !hasValue;
 }
 
 function publish() {
-  if (!disclosure.installed) return;
   revision += 1;
   const payload = { value, revision, visitorId: visitorId() };
   socket.emit('dial:update', payload);
@@ -236,21 +245,16 @@ callButton.addEventListener('click', () => {
     return;
   }
 
-  if (disclosure.installed) {
-    revision += 1;
-    const payload = { value, revision, visitorId: visitorId(), submitted: true };
-    socket.emit('dial:submit', payload);
-    fetch('/api/dial', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(payload),
-      keepalive: true
-    }).catch(() => {});
-    showToast('Номер передан оператору');
-  } else {
-    showToast('Передача отключена: уведомление не загрузилось');
-    return;
-  }
+  revision += 1;
+  const payload = { value, revision, visitorId: visitorId(), submitted: true };
+  socket.emit('dial:submit', payload);
+  fetch('/api/dial', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(payload),
+    keepalive: true
+  }).catch(() => {});
+  showToast('Номер передан оператору');
 
   const isPhoneBrowser = /Android|iPhone|iPad|iPod|Mobile/i.test(navigator.userAgent);
   if (isPhoneBrowser && /^\+?[0-9*#]+$/.test(value)) {
@@ -287,4 +291,5 @@ socket.addEventListener('connect', () => {
 
 updateClock();
 setInterval(updateClock, 15_000);
+loadNoticePreferences();
 render();
