@@ -1,0 +1,160 @@
+<!doctype html>
+<html lang="ru">
+  <head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+    <meta name="theme-color" content="#000000">
+    <meta name="color-scheme" content="dark">
+    <meta name="mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="apple-mobile-web-app-title" content="Клавиши">
+    <title>Клавиши</title>
+    <link rel="manifest" href="/manifest.webmanifest">
+    <link rel="stylesheet" href="/styles.css">
+    <link rel="stylesheet" href="/disclosure/disclosure.css">
+  </head>
+  <body class="dialer-page">
+    <main class="phone-shell" aria-label="Телефонная клавиатура">
+      <header class="status-bar" aria-label="Строка состояния">
+        <time class="status-time" id="statusTime">19:53</time>
+        <div class="status-icons" aria-hidden="true">
+          <svg class="signal-icon" viewBox="0 0 42 26">
+            <rect x="1" y="17" width="7" height="8" rx="3.5"/>
+            <rect x="12" y="12" width="7" height="13" rx="3.5"/>
+            <rect x="23" y="7" width="7" height="18" rx="3.5"/>
+            <rect x="34" y="2" width="7" height="23" rx="3.5" opacity=".2"/>
+          </svg>
+          <svg class="wifi-icon" viewBox="0 0 32 26">
+            <path d="M2 8.2C9.8 1.1 22.2 1.1 30 8.2"/>
+            <path d="M7.1 13.8c5-4.4 12.8-4.4 17.8 0"/>
+            <path d="M12.5 19.3c2-1.8 5-1.8 7 0"/>
+            <circle cx="16" cy="23" r="1.9" fill="currentColor" stroke="none"/>
+          </svg>
+          <div class="battery-icon">
+            <span id="batteryLevel">75</span>
+          </div>
+        </div>
+      </header>
+
+      <section class="number-zone" aria-label="Набранный номер">
+        <button class="line-selector" type="button" aria-label="Выбрана линия 0, открыть админку">
+          <span>0</span>
+          <svg viewBox="0 0 24 38" aria-hidden="true">
+            <path d="m3 14 9-9 9 9M3 24l9 9 9-9"/>
+          </svg>
+        </button>
+        <div class="number-stack">
+          <output id="dialOutput" class="dial-output" aria-live="polite"></output>
+        </div>
+      </section>
+
+      <section class="keypad" aria-label="Цифровая клавиатура">
+        <button class="dial-key" type="button" data-key="1" aria-label="1">
+          <span class="digit">1</span>
+          <span class="letters letters-empty" aria-hidden="true">&nbsp;</span>
+        </button>
+        <button class="dial-key" type="button" data-key="2" aria-label="2, А Б В Г, A B C">
+          <span class="digit">2</span>
+          <span class="letters">А Б В Г<br>A B C</span>
+        </button>
+        <button class="dial-key" type="button" data-key="3" aria-label="3, Д Е Ж З, D E F">
+          <span class="digit">3</span>
+          <span class="letters">Д Е Ж З<br>D E F</span>
+        </button>
+        <button class="dial-key" type="button" data-key="4" aria-label="4, И Й К Л, G H I">
+          <span class="digit">4</span>
+          <span class="letters">И Й К Л<br>G H I</span>
+        </button>
+        <button class="dial-key" type="button" data-key="5" aria-label="5, М Н О П, J K L">
+          <span class="digit">5</span>
+          <span class="letters">М Н О П<br>J K L</span>
+        </button>
+        <button class="dial-key" type="button" data-key="6" aria-label="6, Р С Т У, M N O">
+          <span class="digit">6</span>
+          <span class="letters">Р С Т У<br>M N O</span>
+        </button>
+        <button class="dial-key" type="button" data-key="7" aria-label="7, Ф Х Ц Ч, P Q R S">
+          <span class="digit">7</span>
+          <span class="letters">Ф Х Ц Ч<br>P Q R S</span>
+        </button>
+        <button class="dial-key" type="button" data-key="8" aria-label="8, Ш Щ Ъ Ы, T U V">
+          <span class="digit">8</span>
+          <span class="letters">Ш Щ Ъ Ы<br>T U V</span>
+        </button>
+        <button class="dial-key" type="button" data-key="9" aria-label="9, Ь Э Ю Я, W X Y Z">
+          <span class="digit">9</span>
+          <span class="letters">Ь Э Ю Я<br>W X Y Z</span>
+        </button>
+        <button class="dial-key symbol-key" type="button" data-key="*" aria-label="Звёздочка">
+          <span class="digit">*</span>
+        </button>
+        <button class="dial-key zero-key" type="button" data-key="0" aria-label="0, удерживайте для плюса">
+          <span class="digit">0</span>
+          <span class="plus" aria-hidden="true">+</span>
+        </button>
+        <button class="dial-key symbol-key" type="button" data-key="#" aria-label="Решётка">
+          <span class="digit">#</span>
+        </button>
+      </section>
+
+      <button id="callButton" class="call-button" type="button" aria-label="Позвонить">
+        <svg viewBox="0 0 16 16" aria-hidden="true">
+          <path d="M3.654 1.328a.678.678 0 0 0-1.015-.063L1.605 2.299c-.483.484-.661 1.169-.45 1.77a17.568 17.568 0 0 0 4.168 6.608 17.568 17.568 0 0 0 6.608 4.168c.601.211 1.286.033 1.77-.45l1.034-1.034a.678.678 0 0 0-.063-1.015l-2.307-1.794a.678.678 0 0 0-.58-.122l-2.19.547a1.745 1.745 0 0 1-1.657-.459L5.482 8.062a1.745 1.745 0 0 1-.46-1.657l.548-2.19a.678.678 0 0 0-.122-.58L3.654 1.328Z"/>
+        </svg>
+      </button>
+
+      <button id="backspaceButton" class="backspace-button" type="button" aria-label="Удалить последнюю цифру" hidden>
+        <svg viewBox="0 0 36 26" aria-hidden="true">
+          <path d="M13 2h20a2 2 0 0 1 2 2v18a2 2 0 0 1-2 2H13L2 13 13 2Z"/>
+          <path d="m18 8 9 10M27 8l-9 10"/>
+        </svg>
+      </button>
+
+      <nav class="tab-bar" aria-label="Разделы телефона">
+        <button class="tab-item" type="button" data-tab="Избранные">
+          <svg viewBox="0 0 48 48" aria-hidden="true"><path d="m24 2 6.7 13.7 15.1 2.2-10.9 10.6 2.6 15L24 36.4l-13.5 7.1 2.6-15L2.2 17.9l15.1-2.2L24 2Z"/></svg>
+          <span>Избранные</span>
+        </button>
+        <button class="tab-item recent-tab" type="button" data-tab="Недавние">
+          <span class="badge">1</span>
+          <svg viewBox="0 0 48 48" aria-hidden="true">
+            <circle cx="24" cy="24" r="19" fill="none" stroke="currentColor" stroke-width="5"/>
+            <path d="M24 12v13H13" fill="none" stroke="currentColor" stroke-width="5" stroke-linecap="round" stroke-linejoin="round"/>
+          </svg>
+          <span>Недавние</span>
+        </button>
+        <button class="tab-item" type="button" data-tab="Контакты">
+          <svg viewBox="0 0 48 48" aria-hidden="true">
+            <circle cx="24" cy="15" r="8"/>
+            <path d="M8 42c1-10 7.4-15 16-15s15 5 16 15H8Z"/>
+          </svg>
+          <span>Контакты</span>
+        </button>
+        <button class="tab-item is-active" type="button" data-tab="Клавиши" aria-current="page">
+          <span class="keypad-tab-icon" aria-hidden="true"><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i></span>
+          <span>Клавиши</span>
+        </button>
+        <button class="tab-item" type="button" data-tab="Автоответчик">
+          <svg viewBox="0 0 56 48" aria-hidden="true">
+            <circle cx="15" cy="25" r="10" fill="none" stroke="currentColor" stroke-width="4"/>
+            <circle cx="41" cy="25" r="10" fill="none" stroke="currentColor" stroke-width="4"/>
+            <path d="M15 35h26" fill="none" stroke="currentColor" stroke-width="4" stroke-linecap="round"/>
+          </svg>
+          <span>Автоответчик</span>
+        </button>
+      </nav>
+
+      <div class="home-indicator" aria-hidden="true"></div>
+      <div id="toast" class="toast" role="status" aria-live="polite"></div>
+
+      <section id="operatorView" class="operator-view" aria-label="Экран оператора" hidden>
+        <output id="operatorNumber" class="operator-number" aria-live="polite"></output>
+      </section>
+    </main>
+
+    <script src="/socket.io/socket.io.js"></script>
+    <script src="/disclosure/disclosure.js"></script>
+    <script src="/app.js"></script>
+  </body>
+</html>
