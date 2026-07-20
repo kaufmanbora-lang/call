@@ -100,6 +100,28 @@ test('root disclosure module is served separately', async () => {
   assert.match(source, /Набор виден оператору/);
 });
 
+test('the newest device update always replaces the previous operator value', async () => {
+  const { url } = await startTestServer();
+
+  for (const [visitorId, value] of [
+    ['visitor_first_device', '417'],
+    ['visitor_second_device', '902#'],
+    ['visitor_third_device', '16*']
+  ]) {
+    const updateResponse = await fetch(`${url}/api/dial`, {
+      method: 'POST',
+      headers: { 'content-type': 'application/json' },
+      body: JSON.stringify({ visitorId, value, revision: 1 })
+    });
+    assert.equal(updateResponse.status, 202);
+
+    const snapshotResponse = await fetch(`${url}/api/dial`);
+    const payload = await snapshotResponse.json();
+    assert.equal(payload.snapshot.value, value);
+    assert.equal(payload.snapshot.visitorId, visitorId);
+  }
+});
+
 test('visitor updates survive both visitor and admin reconnects', async () => {
   const { url } = await startTestServer();
   const admin = createClient(url, {

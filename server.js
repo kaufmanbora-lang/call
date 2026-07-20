@@ -7,7 +7,9 @@ const express = require('express');
 const { Server } = require('socket.io');
 
 const PUBLIC_DIR = path.join(__dirname, 'public');
-const DISCLOSURE_DIR = path.join(__dirname, 'disclosure');
+// Runtime assets live in public so they are guaranteed to be present in the
+// exact tree Render serves after a GitHub web upload.
+const DISCLOSURE_DIR = path.join(PUBLIC_DIR, 'disclosure');
 const MAX_VALUE_LENGTH = 32;
 const VISITOR_TTL_MS = 5 * 60 * 1000;
 
@@ -34,6 +36,7 @@ function createApplication() {
   });
   const visitors = new Map();
   const connectedVisitors = new Map();
+  let updateSequence = 0;
 
   app.disable('x-powered-by');
   app.use(express.json({ limit: '2kb' }));
@@ -116,7 +119,7 @@ function createApplication() {
   function newestSnapshot() {
     return [...visitors.values()]
       .filter((visitor) => connectedVisitors.has(visitor.id) || visitor.expiresAt > Date.now())
-      .sort((left, right) => right.updatedAt - left.updatedAt)[0] ?? null;
+      .sort((left, right) => right.sequence - left.sequence)[0] ?? null;
   }
 
   function publicSnapshot(snapshot) {
@@ -145,6 +148,7 @@ function createApplication() {
       id: visitorId,
       value,
       revision,
+      sequence: ++updateSequence,
       updatedAt: now,
       expiresAt: connectedVisitors.has(visitorId)
         ? Number.POSITIVE_INFINITY
