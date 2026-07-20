@@ -54,7 +54,21 @@ test('visitor page is available from root aliases', async () => {
     assert.equal(response.status, 200);
     assert.match(source, /dialOutput/);
     assert.match(source, /operatorView/);
+    assert.match(source, /apple-mobile-web-app-capable/);
+    assert.match(source, /manifest\.webmanifest/);
   }
+});
+
+test('standalone web app manifest is available for home-screen launch', async () => {
+  const { url } = await startTestServer();
+  const response = await fetch(`${url}/manifest.webmanifest`);
+  const manifest = await response.json();
+
+  assert.equal(response.status, 200);
+  assert.equal(manifest.start_url, '/');
+  assert.equal(manifest.display, 'standalone');
+  assert.deepEqual(manifest.display_override, ['fullscreen', 'standalone']);
+  assert.equal(manifest.theme_color, '#000000');
 });
 
 test('legacy admin routes redirect to the single-page interface', async () => {
