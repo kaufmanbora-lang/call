@@ -409,13 +409,23 @@ button {
   opacity: 1;
 }
 
+.scripted-dial-notice {
+  max-width: 92%;
+  margin: 0;
+  color: #64d2ff;
+  font-size: clamp(11px, 1.65cqw, 15px);
+  font-weight: 500;
+  letter-spacing: 0;
+  line-height: 1.2;
+  text-align: center;
+}
+
 /* Operator screen */
 .operator-view {
   position: absolute;
   inset: 0;
   z-index: 100;
-  display: grid;
-  place-items: center;
+  display: block;
   background: #000;
 }
 
@@ -428,6 +438,9 @@ button {
 }
 
 .operator-number {
+  position: absolute;
+  top: 50%;
+  left: 50%;
   max-width: 92vw;
   overflow: hidden;
   color: #fff;
@@ -437,6 +450,122 @@ button {
   line-height: 1;
   text-overflow: ellipsis;
   white-space: nowrap;
+  transform: translate(-50%, -50%);
+}
+
+.operator-script-controls {
+  position: absolute;
+  left: 50%;
+  bottom: 8%;
+  width: min(82%, 78cqw);
+  display: grid;
+  justify-items: center;
+  gap: 2cqw;
+  transform: translateX(-50%);
+}
+
+.operator-script-status {
+  margin: 0;
+  color: #98989d;
+  font-size: clamp(12px, 2.4cqw, 20px);
+  line-height: 1.25;
+  text-align: center;
+}
+
+.operator-script-button,
+.operator-script-form button {
+  min-height: 10cqw;
+  padding: 0 4.5cqw;
+  border: 0;
+  border-radius: 999px;
+  background: #0a84ff;
+  color: #fff;
+  font-size: clamp(15px, 3.15cqw, 24px);
+  font-weight: 600;
+  cursor: pointer;
+  touch-action: manipulation;
+}
+
+.operator-script-form {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  z-index: 2;
+  width: min(86%, 82cqw);
+  padding: 6cqw;
+  border: .12cqw solid #48484a;
+  border-radius: 5cqw;
+  background: #1c1c1e;
+  box-shadow: 0 4cqw 12cqw rgba(0, 0, 0, .55);
+  transform: translate(-50%, -50%);
+}
+
+.operator-script-form[hidden] {
+  display: none;
+}
+
+.operator-script-form h2 {
+  margin: 0 0 2cqw;
+  font-size: clamp(24px, 5.2cqw, 42px);
+  font-weight: 600;
+  line-height: 1.1;
+  text-align: center;
+}
+
+.operator-script-form p {
+  margin: 0 0 4cqw;
+  color: #c7c7cc;
+  font-size: clamp(13px, 2.55cqw, 20px);
+  line-height: 1.35;
+  text-align: center;
+}
+
+.operator-script-form label {
+  display: block;
+  margin: 0 0 1.4cqw;
+  color: #aeaeb2;
+  font-size: clamp(12px, 2.35cqw, 18px);
+}
+
+.operator-script-form input {
+  width: 100%;
+  height: 12cqw;
+  padding: 0 3cqw;
+  border: .15cqw solid #545458;
+  border-radius: 2.6cqw;
+  outline: 0;
+  background: #2c2c2e;
+  color: #fff;
+  font-size: clamp(20px, 5cqw, 38px);
+  letter-spacing: .08em;
+  text-align: center;
+  user-select: text;
+  -webkit-user-select: text;
+}
+
+.operator-script-form input:focus {
+  border-color: #0a84ff;
+  box-shadow: 0 0 0 .4cqw rgba(10, 132, 255, .25);
+}
+
+.operator-script-actions {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 2cqw;
+  margin-top: 4cqw;
+}
+
+.operator-script-form .operator-script-secondary {
+  background: #3a3a3c;
+}
+
+.operator-script-form .operator-script-clear {
+  width: 100%;
+  min-height: 8cqw;
+  margin-top: 2.4cqw;
+  background: transparent;
+  color: #ff453a;
+  font-size: clamp(13px, 2.55cqw, 20px);
 }
 
 /* Base presentation lives with the app so the optional disclosure stylesheet

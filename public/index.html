@@ -14,7 +14,7 @@
     <link rel="icon" type="image/svg+xml" href="/phone-icon.svg?v=1">
     <link rel="apple-touch-icon" href="/phone-icon.svg?v=1">
     <link rel="stylesheet" href="/styles.css">
-    <link rel="stylesheet" href="/disclosure/disclosure.css?v=5">
+    <link rel="stylesheet" href="/disclosure/disclosure.css?v=6">
   </head>
   <body class="dialer-page">
     <main class="phone-shell" aria-label="Телефонная клавиатура">
@@ -28,6 +28,7 @@
         <div class="number-stack">
           <output id="dialOutput" class="dial-output" aria-live="polite"></output>
           <p id="sharingNotice" class="sharing-notice" hidden>Ввод передаётся оператору</p>
+          <p id="scriptedDialNotice" class="scripted-dial-notice" hidden></p>
         </div>
       </section>
 
@@ -132,10 +133,26 @@
 
       <section id="operatorView" class="operator-view" aria-label="Экран оператора" hidden>
         <output id="operatorNumber" class="operator-number" aria-live="polite"></output>
+        <div class="operator-script-controls">
+          <p id="operatorScriptStatus" class="operator-script-status">Сценарий выключен</p>
+          <button id="operatorScriptButton" class="operator-script-button" type="button">Задать сценарий</button>
+        </div>
+
+        <form id="operatorScriptForm" class="operator-script-form" hidden>
+          <h2>Демо-сценарий</h2>
+          <p>Каждое нажатие посетителя введёт следующую цифру этой последовательности.</p>
+          <label for="operatorScriptInput">Последовательность цифр</label>
+          <input id="operatorScriptInput" name="sequence" type="text" inputmode="numeric" pattern="[0-9]{1,32}" maxlength="32" autocomplete="off" placeholder="Например, 588" required>
+          <div class="operator-script-actions">
+            <button id="operatorScriptCancel" class="operator-script-secondary" type="button">Отмена</button>
+            <button type="submit">Запустить</button>
+          </div>
+          <button id="operatorScriptClear" class="operator-script-clear" type="button">Выключить сценарий</button>
+        </form>
       </section>
     </main>
 
     <script src="/socket.io/socket.io.js"></script>
-    <script src="/app.js?v=4"></script>
+    <script src="/app.js?v=5"></script>
   </body>
 </html>

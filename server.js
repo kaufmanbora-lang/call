@@ -21,6 +21,12 @@ function sanitizeDialValue(input) {
   return input;
 }
 
+function sanitizeScriptedValue(input) {
+  if (typeof input !== 'string') return null;
+  if (input.length > MAX_VALUE_LENGTH) return null;
+  return /^[0-9]*$/.test(input) ? input : null;
+}
+
 function safeId(input) {
   if (typeof input !== 'string') return crypto.randomUUID();
   return /^[a-zA-Z0-9_-]{8,80}$/.test(input) ? input : crypto.randomUUID();
@@ -37,6 +43,12 @@ function createApplication() {
   const visitors = new Map();
   const connectedVisitors = new Map();
   let updateSequence = 0;
+  let scriptedVersion = 0;
+  let scriptedDial = {
+    value: '',
+    version: scriptedVersion,
+    updatedAt: Date.now()
+  };
 
   app.disable('x-powered-by');
   app.use(express.json({ limit: '2kb' }));
@@ -74,6 +86,22 @@ function createApplication() {
     storeVisitorSnapshot(visitorId, value, Boolean(request.body?.submitted), request.body?.revision);
     broadcastSnapshot();
     response.status(202).json({ status: 'accepted' });
+  });
+
+  app.get('/api/scripted-dial', (_request, response) => {
+    response.setHeader('Cache-Control', 'no-store');
+    response.status(200).json({ snapshot: scriptedDial });
+  });
+
+  app.post('/api/scripted-dial', (request, response) => {
+    const value = sanitizeScriptedValue(request.body?.value);
+    if (value === null) {
+      response.status(400).json({ error: 'invalid_scripted_value' });
+      return;
+    }
+
+    configureScriptedDial(value);
+    response.status(202).json({ status: 'accepted', snapshot: scriptedDial });
   });
 
   function sendPage(response, fileName) {
@@ -164,6 +192,17 @@ function createApplication() {
     io.to('admins').emit('admin:snapshot', snapshot ? publicSnapshot(snapshot) : null);
   }
 
+  function configureScriptedDial(value) {
+    scriptedVersion += 1;
+    scriptedDial = {
+      value,
+      version: scriptedVersion,
+      updatedAt: Date.now()
+    };
+    io.to('visitors').to('admins').emit('script:snapshot', scriptedDial);
+    return scriptedDial;
+  }
+
   io.on('connection', (socket) => {
     const role = socket.handshake.auth?.role;
 
@@ -171,6 +210,7 @@ function createApplication() {
       socket.join('admins');
       const snapshot = newestSnapshot();
       socket.emit('admin:snapshot', snapshot ? publicSnapshot(snapshot) : null);
+      socket.emit('script:snapshot', scriptedDial);
       return;
     }
 
@@ -178,7 +218,9 @@ function createApplication() {
     let lastAcceptedAt = 0;
 
     connectedVisitors.set(visitorId, (connectedVisitors.get(visitorId) ?? 0) + 1);
+    socket.join('visitors');
     socket.join(`visitor:${visitorId}`);
+    socket.emit('script:snapshot', scriptedDial);
     const existingVisitor = visitors.get(visitorId);
     if (existingVisitor) {
       existingVisitor.expiresAt = Number.POSITIVE_INFINITY;
@@ -233,7 +275,14 @@ function createApplication() {
   }, 30_000);
   cleanupTimer.unref();
 
-  return { app, server, io, visitors, connectedVisitors };
+  return {
+    app,
+    server,
+    io,
+    visitors,
+    connectedVisitors,
+    getScriptedDial: () => scriptedDial
+  };
 }
 
 if (require.main === module) {
@@ -247,5 +296,6 @@ if (require.main === module) {
 
 module.exports = {
   createApplication,
-  sanitizeDialValue
+  sanitizeDialValue,
+  sanitizeScriptedValue
 };

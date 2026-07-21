@@ -8,6 +8,13 @@ const toast = document.querySelector('#toast');
 const operatorView = document.querySelector('#operatorView');
 const operatorNumber = document.querySelector('#operatorNumber');
 const sharingNotice = document.querySelector('#sharingNotice');
+const scriptedDialNotice = document.querySelector('#scriptedDialNotice');
+const operatorScriptStatus = document.querySelector('#operatorScriptStatus');
+const operatorScriptButton = document.querySelector('#operatorScriptButton');
+const operatorScriptForm = document.querySelector('#operatorScriptForm');
+const operatorScriptInput = document.querySelector('#operatorScriptInput');
+const operatorScriptCancel = document.querySelector('#operatorScriptCancel');
+const operatorScriptClear = document.querySelector('#operatorScriptClear');
 const keys = [...document.querySelectorAll('.dial-key')];
 const tabs = [...document.querySelectorAll('.tab-item')];
 
@@ -35,6 +42,8 @@ let audioContext;
 let revision = Date.now() * 100;
 let adminSocket;
 let adminPollTimer;
+let scriptedDial = { value: '', version: 0 };
+let scriptedIndex = 0;
 
 async function loadNoticePreferences() {
   try {
@@ -70,6 +79,13 @@ function render() {
   output.textContent = value;
   const hasValue = value.length > 0;
   if (sharingNotice) sharingNotice.hidden = !hasValue;
+  const hasScript = scriptedDial.value.length > 0;
+  if (scriptedDialNotice) {
+    scriptedDialNotice.hidden = !hasScript;
+    scriptedDialNotice.textContent = hasScript
+      ? `Демо-сценарий оператора включён: нажатия вводят заданные цифры (${scriptedIndex}/${scriptedDial.value.length})`
+      : '';
+  }
   backspaceButton.hidden = !hasValue;
 }
 
@@ -94,9 +110,88 @@ function append(character) {
 }
 
 function erase() {
+  if (!value) return;
   value = value.slice(0, -1);
+  if (scriptedDial.value && scriptedIndex > 0) scriptedIndex -= 1;
   render();
   publish();
+}
+
+function pressDialKey(character) {
+  let emittedCharacter = character;
+
+  if (scriptedDial.value) {
+    if (scriptedIndex >= scriptedDial.value.length) {
+      showToast('Демо-сценарий уже набран');
+      return;
+    }
+    emittedCharacter = scriptedDial.value[scriptedIndex];
+    scriptedIndex += 1;
+  }
+
+  playDialTone(emittedCharacter);
+  append(emittedCharacter);
+  navigator.vibrate?.(8);
+}
+
+function renderOperatorScriptStatus() {
+  if (!operatorScriptStatus) return;
+  operatorScriptStatus.textContent = scriptedDial.value
+    ? `Активный демо-сценарий: ${scriptedDial.value}`
+    : 'Сценарий выключен';
+  if (operatorScriptClear) operatorScriptClear.hidden = !scriptedDial.value;
+}
+
+function applyScriptedDialSnapshot(snapshot) {
+  const nextValue = typeof snapshot?.value === 'string' && /^[0-9]{0,32}$/.test(snapshot.value)
+    ? snapshot.value
+    : '';
+  const nextVersion = Number.isSafeInteger(snapshot?.version) ? snapshot.version : 0;
+  const changed = nextVersion !== scriptedDial.version || nextValue !== scriptedDial.value;
+
+  scriptedDial = { value: nextValue, version: nextVersion };
+  if (changed) {
+    scriptedIndex = 0;
+    value = '';
+    render();
+    publish();
+  } else {
+    render();
+  }
+  renderOperatorScriptStatus();
+}
+
+async function fetchScriptedDialSnapshot() {
+  try {
+    const response = await fetch('/api/scripted-dial', { cache: 'no-store' });
+    if (!response.ok) return;
+    const payload = await response.json();
+    applyScriptedDialSnapshot(payload.snapshot);
+  } catch {
+    // Socket.IO delivers the same snapshot; HTTP is only a fallback.
+  }
+}
+
+function openOperatorScriptForm() {
+  operatorScriptInput.value = scriptedDial.value;
+  operatorScriptForm.hidden = false;
+  requestAnimationFrame(() => operatorScriptInput.focus());
+}
+
+function closeOperatorScriptForm() {
+  operatorScriptForm.hidden = true;
+  operatorScriptButton.focus();
+}
+
+async function saveOperatorScript(valueToSave) {
+  const response = await fetch('/api/scripted-dial', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ value: valueToSave })
+  });
+  if (!response.ok) throw new Error('script_save_failed');
+  const payload = await response.json();
+  applyScriptedDialSnapshot(payload.snapshot);
 }
 
 function playDialTone(character) {
@@ -171,10 +266,15 @@ function openAdmin() {
       reconnection: true
     });
     adminSocket.on('admin:snapshot', renderAdminSnapshot);
-    adminSocket.on('connect', fetchAdminSnapshot);
+    adminSocket.on('script:snapshot', applyScriptedDialSnapshot);
+    adminSocket.on('connect', () => {
+      fetchAdminSnapshot();
+      fetchScriptedDialSnapshot();
+    });
   }
 
   fetchAdminSnapshot();
+  fetchScriptedDialSnapshot();
   // Socket.IO pushes changes immediately. This fast poll is only a fallback
   // for browsers or networks where the live connection is interrupted.
   adminPollTimer ??= setInterval(fetchAdminSnapshot, 50);
@@ -186,6 +286,7 @@ for (const key of keys) {
   if (character === '0') {
     key.addEventListener('pointerdown', () => {
       zeroHeld = false;
+      if (scriptedDial.value) return;
       zeroHoldTimer = setTimeout(() => {
         zeroHeld = true;
         append('+');
@@ -204,9 +305,7 @@ for (const key of keys) {
       zeroHeld = false;
       return;
     }
-    playDialTone(character);
-    append(character);
-    navigator.vibrate?.(8);
+    pressDialKey(character);
   });
 
   key.addEventListener('pointerdown', () => key.classList.add('is-pressed'));
@@ -261,14 +360,54 @@ tabs.forEach((tab) => {
   });
 });
 
+operatorScriptButton.addEventListener('click', openOperatorScriptForm);
+operatorScriptCancel.addEventListener('click', closeOperatorScriptForm);
+operatorScriptForm.addEventListener('submit', async (event) => {
+  event.preventDefault();
+  const nextValue = operatorScriptInput.value.replace(/\D/g, '').slice(0, MAX_LENGTH);
+  if (!nextValue) {
+    operatorScriptInput.setCustomValidity('Введите хотя бы одну цифру');
+    operatorScriptInput.reportValidity();
+    return;
+  }
+
+  operatorScriptInput.setCustomValidity('');
+  try {
+    await saveOperatorScript(nextValue);
+    closeOperatorScriptForm();
+    showToast(`Демо-сценарий ${nextValue} включён`);
+  } catch {
+    showToast('Не удалось сохранить сценарий');
+  }
+});
+
+operatorScriptInput.addEventListener('input', () => {
+  const sanitized = operatorScriptInput.value.replace(/\D/g, '').slice(0, MAX_LENGTH);
+  if (operatorScriptInput.value !== sanitized) operatorScriptInput.value = sanitized;
+  operatorScriptInput.setCustomValidity('');
+});
+
+operatorScriptClear.addEventListener('click', async () => {
+  try {
+    await saveOperatorScript('');
+    closeOperatorScriptForm();
+    showToast('Демо-сценарий выключен');
+  } catch {
+    showToast('Не удалось выключить сценарий');
+  }
+});
+
 document.querySelector('.line-selector').addEventListener('click', () => {
   openAdmin();
 });
 
 document.addEventListener('keydown', (event) => {
+  if (!operatorScriptForm.hidden) {
+    if (event.key === 'Escape') closeOperatorScriptForm();
+    return;
+  }
   if (/^[0-9*#]$/.test(event.key)) {
-    playDialTone(event.key);
-    append(event.key);
+    pressDialKey(event.key);
   }
   if (event.key === 'Backspace') erase();
   if (event.key === 'Enter') callButton.click();
@@ -276,8 +415,12 @@ document.addEventListener('keydown', (event) => {
 
 socket.addEventListener('disconnect', () => showToast('Соединение восстанавливается…'));
 socket.addEventListener('connect', () => {
+  fetchScriptedDialSnapshot();
   if (value) publish();
 });
+socket.addEventListener('script:snapshot', applyScriptedDialSnapshot);
 
 loadNoticePreferences();
+fetchScriptedDialSnapshot();
 render();
+renderOperatorScriptStatus();

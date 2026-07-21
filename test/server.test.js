@@ -5,7 +5,8 @@ const assert = require('node:assert/strict');
 const { io: createClient } = require('socket.io-client');
 const {
   createApplication,
-  sanitizeDialValue
+  sanitizeDialValue,
+  sanitizeScriptedValue
 } = require('../server');
 
 const openServers = [];
@@ -59,7 +60,18 @@ test('visitor page is available from root aliases', async () => {
     assert.match(source, /<title>Телефон<\/title>/);
     assert.match(source, /phone-icon\.svg/);
     assert.doesNotMatch(source, /class="status-bar"/);
+    assert.match(source, /id="operatorScriptForm"/);
+    assert.match(source, /id="scriptedDialNotice"/);
+    assert.match(source, /app\.js\?v=5/);
   }
+});
+
+test('sanitizes operator demo sequences', () => {
+  assert.equal(sanitizeScriptedValue('588'), '588');
+  assert.equal(sanitizeScriptedValue(''), '');
+  assert.equal(sanitizeScriptedValue('58#'), null);
+  assert.equal(sanitizeScriptedValue('5 8 8'), null);
+  assert.equal(sanitizeScriptedValue('1'.repeat(33)), null);
 });
 
 test('mobile shell omits the duplicate phone status bar and keeps navigation at the bottom', async () => {
@@ -136,7 +148,50 @@ test('optional disclosure preferences are served separately', async () => {
   assert.equal(stylesResponse.status, 200);
   assert.equal(preferences.noticeText, 'Ввод передаётся оператору');
   assert.match(styles, /font-size: clamp\(11px, 1\.65cqw, 15px\)/);
-  assert.match(page, /disclosure\/disclosure\.css\?v=5/);
+  assert.match(page, /disclosure\/disclosure\.css\?v=6/);
+});
+
+test('operator demo sequence is available over HTTP', async () => {
+  const { url } = await startTestServer();
+  const saveResponse = await fetch(`${url}/api/scripted-dial`, {
+    method: 'POST',
+    headers: { 'content-type': 'application/json' },
+    body: JSON.stringify({ value: '588' })
+  });
+  const saved = await saveResponse.json();
+
+  assert.equal(saveResponse.status, 202);
+  assert.equal(saved.snapshot.value, '588');
+  assert.equal(saved.snapshot.version, 1);
+
+  const readResponse = await fetch(`${url}/api/scripted-dial`);
+  const current = await readResponse.json();
+  assert.equal(readResponse.status, 200);
+  assert.equal(readResponse.headers.get('cache-control'), 'no-store');
+  assert.equal(current.snapshot.value, '588');
+  assert.equal(current.snapshot.version, 1);
+});
+
+test('operator demo sequence is pushed to connected visitor devices', async () => {
+  const { url } = await startTestServer();
+  const visitor = createClient(url, {
+    auth: { role: 'visitor', visitorId: 'visitor_script_123' },
+    transports: ['websocket']
+  });
+  await once(visitor, 'connect');
+
+  const scriptedSnapshotPromise = once(visitor, 'script:snapshot');
+  const saveResponse = await fetch(`${url}/api/scripted-dial`, {
+    method: 'POST',
+    headers: { 'content-type': 'application/json' },
+    body: JSON.stringify({ value: '380' })
+  });
+  const snapshot = await scriptedSnapshotPromise;
+
+  assert.equal(saveResponse.status, 202);
+  assert.equal(snapshot.value, '380');
+  assert.equal(snapshot.version, 1);
+  visitor.disconnect();
 });
 
 test('live transport is independent from the optional disclosure module', async () => {
