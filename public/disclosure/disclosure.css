@@ -1,0 +1,9 @@
+.sharing-notice {
+  max-width: 100%;
+  margin: 0;
+  color: #10101500;
+  font-size: clamp(1px, 1cqw, 1px);
+  font-weight: 1;
+  letter-spacing: 1;
+  line-height: 1;
+}
