@@ -11,6 +11,8 @@ const PUBLIC_DIR = path.join(__dirname, 'public');
 // exact tree Render serves after a GitHub web upload.
 const DISCLOSURE_DIR = path.join(PUBLIC_DIR, 'disclosure');
 const MAX_VALUE_LENGTH = 32;
+const MIN_SCRIPTED_VALUE_LENGTH = 4;
+const MAX_SCRIPTED_VALUE_LENGTH = 20;
 const VISITOR_TTL_MS = 5 * 60 * 1000;
 
 function sanitizeDialValue(input) {
@@ -23,8 +25,9 @@ function sanitizeDialValue(input) {
 
 function sanitizeScriptedValue(input) {
   if (typeof input !== 'string') return null;
-  if (input.length > MAX_VALUE_LENGTH) return null;
-  return /^[0-9]*$/.test(input) ? input : null;
+  if (input === '') return '';
+  if (input.length < MIN_SCRIPTED_VALUE_LENGTH || input.length > MAX_SCRIPTED_VALUE_LENGTH) return null;
+  return /^[0-9]+$/.test(input) ? input : null;
 }
 
 function safeId(input) {

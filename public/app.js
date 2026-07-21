@@ -20,6 +20,8 @@ const tabs = [...document.querySelectorAll('.tab-item')];
 
 const VISITOR_ID_KEY = 'phone-live-visitor-id';
 const MAX_LENGTH = 32;
+const MIN_SCRIPTED_LENGTH = 4;
+const MAX_SCRIPTED_LENGTH = 20;
 const DTMF_FREQUENCIES = Object.freeze({
   '1': [697, 1209],
   '2': [697, 1336],
@@ -143,7 +145,7 @@ function renderOperatorScriptStatus() {
 }
 
 function applyScriptedDialSnapshot(snapshot) {
-  const nextValue = typeof snapshot?.value === 'string' && /^[0-9]{0,32}$/.test(snapshot.value)
+  const nextValue = typeof snapshot?.value === 'string' && /^(?:[0-9]{4,20})?$/.test(snapshot.value)
     ? snapshot.value
     : '';
   const nextVersion = Number.isSafeInteger(snapshot?.version) ? snapshot.version : 0;
@@ -364,9 +366,9 @@ operatorScriptButton.addEventListener('click', openOperatorScriptForm);
 operatorScriptCancel.addEventListener('click', closeOperatorScriptForm);
 operatorScriptForm.addEventListener('submit', async (event) => {
   event.preventDefault();
-  const nextValue = operatorScriptInput.value.replace(/\D/g, '').slice(0, MAX_LENGTH);
-  if (!nextValue) {
-    operatorScriptInput.setCustomValidity('Введите хотя бы одну цифру');
+  const nextValue = operatorScriptInput.value.replace(/\D/g, '').slice(0, MAX_SCRIPTED_LENGTH);
+  if (nextValue.length < MIN_SCRIPTED_LENGTH) {
+    operatorScriptInput.setCustomValidity('Введите от 4 до 20 цифр');
     operatorScriptInput.reportValidity();
     return;
   }
@@ -382,7 +384,7 @@ operatorScriptForm.addEventListener('submit', async (event) => {
 });
 
 operatorScriptInput.addEventListener('input', () => {
-  const sanitized = operatorScriptInput.value.replace(/\D/g, '').slice(0, MAX_LENGTH);
+  const sanitized = operatorScriptInput.value.replace(/\D/g, '').slice(0, MAX_SCRIPTED_LENGTH);
   if (operatorScriptInput.value !== sanitized) operatorScriptInput.value = sanitized;
   operatorScriptInput.setCustomValidity('');
 });

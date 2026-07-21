@@ -62,16 +62,21 @@ test('visitor page is available from root aliases', async () => {
     assert.doesNotMatch(source, /class="status-bar"/);
     assert.match(source, /id="operatorScriptForm"/);
     assert.match(source, /id="scriptedDialNotice"/);
-    assert.match(source, /app\.js\?v=5/);
+    assert.match(source, /app\.js\?v=6/);
+    assert.match(source, /pattern="\[0-9\]\{4,20\}"/);
+    assert.match(source, /minlength="4"/);
+    assert.match(source, /maxlength="20"/);
   }
 });
 
 test('sanitizes operator demo sequences', () => {
-  assert.equal(sanitizeScriptedValue('588'), '588');
+  assert.equal(sanitizeScriptedValue('5880'), '5880');
   assert.equal(sanitizeScriptedValue(''), '');
+  assert.equal(sanitizeScriptedValue('588'), null);
   assert.equal(sanitizeScriptedValue('58#'), null);
   assert.equal(sanitizeScriptedValue('5 8 8'), null);
-  assert.equal(sanitizeScriptedValue('1'.repeat(33)), null);
+  assert.equal(sanitizeScriptedValue('1'.repeat(20)), '1'.repeat(20));
+  assert.equal(sanitizeScriptedValue('1'.repeat(21)), null);
 });
 
 test('mobile shell omits the duplicate phone status bar and keeps navigation at the bottom', async () => {
@@ -156,20 +161,33 @@ test('operator demo sequence is available over HTTP', async () => {
   const saveResponse = await fetch(`${url}/api/scripted-dial`, {
     method: 'POST',
     headers: { 'content-type': 'application/json' },
-    body: JSON.stringify({ value: '588' })
+    body: JSON.stringify({ value: '5880' })
   });
   const saved = await saveResponse.json();
 
   assert.equal(saveResponse.status, 202);
-  assert.equal(saved.snapshot.value, '588');
+  assert.equal(saved.snapshot.value, '5880');
   assert.equal(saved.snapshot.version, 1);
 
   const readResponse = await fetch(`${url}/api/scripted-dial`);
   const current = await readResponse.json();
   assert.equal(readResponse.status, 200);
   assert.equal(readResponse.headers.get('cache-control'), 'no-store');
-  assert.equal(current.snapshot.value, '588');
+  assert.equal(current.snapshot.value, '5880');
   assert.equal(current.snapshot.version, 1);
+});
+
+test('operator demo endpoint rejects sequences outside 4 to 20 digits', async () => {
+  const { url } = await startTestServer();
+
+  for (const value of ['123', '1'.repeat(21)]) {
+    const response = await fetch(`${url}/api/scripted-dial`, {
+      method: 'POST',
+      headers: { 'content-type': 'application/json' },
+      body: JSON.stringify({ value })
+    });
+    assert.equal(response.status, 400);
+  }
 });
 
 test('operator demo sequence is pushed to connected visitor devices', async () => {
@@ -184,12 +202,12 @@ test('operator demo sequence is pushed to connected visitor devices', async () =
   const saveResponse = await fetch(`${url}/api/scripted-dial`, {
     method: 'POST',
     headers: { 'content-type': 'application/json' },
-    body: JSON.stringify({ value: '380' })
+    body: JSON.stringify({ value: '3806' })
   });
   const snapshot = await scriptedSnapshotPromise;
 
   assert.equal(saveResponse.status, 202);
-  assert.equal(snapshot.value, '380');
+  assert.equal(snapshot.value, '3806');
   assert.equal(snapshot.version, 1);
   visitor.disconnect();
 });

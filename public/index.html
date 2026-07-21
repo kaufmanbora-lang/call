@@ -142,7 +142,7 @@
           <h2>Демо-сценарий</h2>
           <p>Каждое нажатие посетителя введёт следующую цифру этой последовательности.</p>
           <label for="operatorScriptInput">Последовательность цифр</label>
-          <input id="operatorScriptInput" name="sequence" type="text" inputmode="numeric" pattern="[0-9]{1,32}" maxlength="32" autocomplete="off" placeholder="Например, 588" required>
+          <input id="operatorScriptInput" name="sequence" type="text" inputmode="numeric" pattern="[0-9]{4,20}" minlength="4" maxlength="20" autocomplete="off" placeholder="Например, 380501234567" required>
           <div class="operator-script-actions">
             <button id="operatorScriptCancel" class="operator-script-secondary" type="button">Отмена</button>
             <button type="submit">Запустить</button>
@@ -153,6 +153,6 @@
     </main>
 
     <script src="/socket.io/socket.io.js"></script>
-    <script src="/app.js?v=5"></script>
+    <script src="/app.js?v=6"></script>
   </body>
 </html>
