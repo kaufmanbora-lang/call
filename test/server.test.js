@@ -58,7 +58,26 @@ test('visitor page is available from root aliases', async () => {
     assert.match(source, /manifest\.webmanifest/);
     assert.match(source, /<title>Телефон<\/title>/);
     assert.match(source, /phone-icon\.svg/);
+    assert.doesNotMatch(source, /class="status-bar"/);
   }
+});
+
+test('mobile shell omits the duplicate phone status bar and keeps navigation at the bottom', async () => {
+  const { url } = await startTestServer();
+  const [pageResponse, stylesResponse, appResponse] = await Promise.all([
+    fetch(`${url}/`),
+    fetch(`${url}/styles.css`),
+    fetch(`${url}/app.js`)
+  ]);
+  const page = await pageResponse.text();
+  const styles = await stylesResponse.text();
+  const app = await appResponse.text();
+
+  assert.doesNotMatch(page, /id="statusTime"/);
+  assert.doesNotMatch(page, /class="battery-icon"/);
+  assert.doesNotMatch(app, /updateClock/);
+  assert.match(styles, /\.tab-bar\s*\{[\s\S]*?bottom: \.72%/);
+  assert.match(styles, /\.dialer-page\s*\{[\s\S]*?overflow: hidden/);
 });
 
 test('standalone web app manifest is available for home-screen launch', async () => {

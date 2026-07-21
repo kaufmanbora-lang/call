@@ -4,7 +4,6 @@ const output = document.querySelector('#dialOutput');
 const backspaceButton = document.querySelector('#backspaceButton');
 const callButton = document.querySelector('#callButton');
 const phoneShell = document.querySelector('.phone-shell');
-const statusTime = document.querySelector('#statusTime');
 const toast = document.querySelector('#toast');
 const operatorView = document.querySelector('#operatorView');
 const operatorNumber = document.querySelector('#operatorNumber');
@@ -65,15 +64,6 @@ const socket = io({
   auth: { role: 'visitor', visitorId: visitorId() },
   transports: ['websocket', 'polling']
 });
-
-function updateClock() {
-  const now = new Date();
-  statusTime.textContent = new Intl.DateTimeFormat('ru-RU', {
-    hour: '2-digit',
-    minute: '2-digit',
-    hour12: false
-  }).format(now);
-}
 
 function render() {
   output.value = value;
@@ -289,7 +279,5 @@ socket.addEventListener('connect', () => {
   if (value) publish();
 });
 
-updateClock();
-setInterval(updateClock, 15_000);
 loadNoticePreferences();
 render();
