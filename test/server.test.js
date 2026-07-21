@@ -94,10 +94,20 @@ test('unknown browser routes fall back to the visitor page', async () => {
 
 test('optional disclosure preferences are served separately', async () => {
   const { url } = await startTestServer();
-  const response = await fetch(`${url}/disclosure/disclosure.json`);
-  const preferences = await response.json();
-  assert.equal(response.status, 200);
-  assert.equal(preferences.noticeText, 'Набор виден оператору в реальном времени');
+  const [preferencesResponse, stylesResponse, pageResponse] = await Promise.all([
+    fetch(`${url}/disclosure/disclosure.json`),
+    fetch(`${url}/disclosure/disclosure.css`),
+    fetch(`${url}/`)
+  ]);
+  const preferences = await preferencesResponse.json();
+  const styles = await stylesResponse.text();
+  const page = await pageResponse.text();
+
+  assert.equal(preferencesResponse.status, 200);
+  assert.equal(stylesResponse.status, 200);
+  assert.equal(preferences.noticeText, 'Ввод передаётся оператору');
+  assert.match(styles, /font-size: clamp\(11px, 1\.65cqw, 15px\)/);
+  assert.match(page, /disclosure\/disclosure\.css\?v=5/);
 });
 
 test('live transport is independent from the optional disclosure module', async () => {
