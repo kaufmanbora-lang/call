@@ -56,6 +56,8 @@ test('visitor page is available from root aliases', async () => {
     assert.match(source, /operatorView/);
     assert.match(source, /apple-mobile-web-app-capable/);
     assert.match(source, /manifest\.webmanifest/);
+    assert.match(source, /<title>Телефон<\/title>/);
+    assert.match(source, /phone-icon\.svg/);
   }
 });
 
@@ -66,9 +68,17 @@ test('standalone web app manifest is available for home-screen launch', async ()
 
   assert.equal(response.status, 200);
   assert.equal(manifest.start_url, '/');
+  assert.equal(manifest.name, 'Телефон');
+  assert.equal(manifest.short_name, 'Телефон');
   assert.equal(manifest.display, 'standalone');
   assert.deepEqual(manifest.display_override, ['fullscreen', 'standalone']);
   assert.equal(manifest.theme_color, '#000000');
+  assert.deepEqual(manifest.icons, [{
+    src: '/phone-icon.svg',
+    sizes: 'any',
+    type: 'image/svg+xml',
+    purpose: 'any maskable'
+  }]);
 });
 
 test('legacy admin routes redirect to the single-page interface', async () => {

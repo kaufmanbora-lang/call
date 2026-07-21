@@ -1,0 +1,13 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" role="img" aria-label="Телефон">
+  <defs>
+    <linearGradient id="phoneGreen" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#34c759"/>
+      <stop offset="1" stop-color="#1aa642"/>
+    </linearGradient>
+  </defs>
+  <rect x="8" y="8" width="496" height="496" rx="116" fill="url(#phoneGreen)"/>
+  <rect x="9" y="9" width="494" height="494" rx="115" fill="none" stroke="#62dc7d" stroke-opacity=".55" stroke-width="2"/>
+  <g transform="translate(96 96) scale(20)" fill="#fff">
+    <path d="M3.654 1.328a.678.678 0 0 0-1.015-.063L1.605 2.299c-.483.484-.661 1.169-.45 1.77a17.568 17.568 0 0 0 4.168 6.608 17.568 17.568 0 0 0 6.608 4.168c.601.211 1.286.033 1.77-.45l1.034-1.034a.678.678 0 0 0-.063-1.015l-2.307-1.794a.678.678 0 0 0-.58-.122l-2.19.547a1.745 1.745 0 0 1-1.657-.459L5.482 8.062a1.745 1.745 0 0 1-.46-1.657l.548-2.19a.678.678 0 0 0-.122-.58L3.654 1.328Z"/>
+  </g>
+</svg>

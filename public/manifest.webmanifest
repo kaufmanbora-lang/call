@@ -1,6 +1,6 @@
 {
-  "name": "Клавиши",
-  "short_name": "Клавиши",
+  "name": "Телефон",
+  "short_name": "Телефон",
   "description": "Телефонная клавиатура",
   "start_url": "/",
   "scope": "/",
@@ -8,5 +8,13 @@
   "display_override": ["fullscreen", "standalone"],
   "orientation": "portrait",
   "theme_color": "#000000",
-  "background_color": "#000000"
+  "background_color": "#000000",
+  "icons": [
+    {
+      "src": "/phone-icon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any maskable"
+    }
+  ]
 }
