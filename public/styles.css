@@ -72,11 +72,11 @@ button {
   display: grid;
   place-items: center;
   border-radius: 1.12cqw;
-  background: #13131400;
+  background: #0a84ff;
   font-size: 4.4cqw;
   font-weight: 500;
   line-height: 1;
-  box-shadow: inset 0 0 0 .13cqw rgba(38, 36, 36, 0);
+  box-shadow: inset 0 0 0 .13cqw rgba(255,255,255,.25);
 }
 
 .line-selector svg {
@@ -198,7 +198,7 @@ button {
 .tab-item:focus-visible,
 .line-selector:focus-visible,
 .backspace-button:focus-visible {
-  outline: .35cqw solid #1c1e2000;
+  outline: .35cqw solid #0a84ff;
   outline-offset: .35cqw;
 }
 
@@ -324,7 +324,7 @@ button {
 
 .tab-item.is-active {
   background: #0b0b0c;
-  color: #0a84ff00;
+  color: #0a84ff;
 }
 
 .tab-item > svg {
@@ -467,7 +467,7 @@ button {
   padding: 0 4.5cqw;
   border: 0;
   border-radius: 999px;
-  background: #05060600;
+  background: #0a84ff;
   color: #fff;
   font-size: clamp(15px, 3.15cqw, 24px);
   font-weight: 600;
@@ -533,8 +533,8 @@ button {
 }
 
 .operator-script-form input:focus {
-  border-color: #14161800;
-  box-shadow: 0 0 0 .4cqw rgba(13, 14, 15, 0);
+  border-color: #0a84ff;
+  box-shadow: 0 0 0 .4cqw rgba(10, 132, 255, .25);
 }
 
 .operator-script-actions {

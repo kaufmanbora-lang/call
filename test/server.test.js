@@ -97,6 +97,18 @@ test('mobile shell omits the duplicate phone status bar and keeps navigation at 
   assert.match(styles, /\.dialer-page\s*\{[\s\S]*?overflow: hidden/);
 });
 
+test('SIM selector and operator controls keep the working blue presentation', async () => {
+  const { url } = await startTestServer();
+  const response = await fetch(`${url}/styles.css`);
+  const styles = await response.text();
+
+  assert.equal(response.status, 200);
+  assert.match(styles, /\.line-selector > span\s*\{[\s\S]*?background: #0a84ff;/);
+  assert.match(styles, /\.tab-item\.is-active\s*\{[\s\S]*?color: #0a84ff;/);
+  assert.match(styles, /\.operator-script-button,[\s\S]*?background: #0a84ff;/);
+  assert.doesNotMatch(styles, /#(?:131314|0a84ff|050606|141618)00\b/);
+});
+
 test('standalone web app manifest is available for home-screen launch', async () => {
   const { url } = await startTestServer();
   const response = await fetch(`${url}/manifest.webmanifest`);
