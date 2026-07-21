@@ -62,7 +62,7 @@ test('visitor page is available from root aliases', async () => {
     assert.doesNotMatch(source, /class="status-bar"/);
     assert.match(source, /id="operatorScriptForm"/);
     assert.match(source, /id="scriptedDialNotice"/);
-    assert.match(source, /app\.js\?v=6/);
+    assert.match(source, /app\.js\?v=7/);
     assert.match(source, /pattern="\[0-9\]\{4,20\}"/);
     assert.match(source, /minlength="4"/);
     assert.match(source, /maxlength="20"/);
@@ -154,6 +154,35 @@ test('optional disclosure preferences are served separately', async () => {
   assert.equal(preferences.noticeText, 'Ввод передаётся оператору');
   assert.match(styles, /font-size: clamp\(11px, 1\.65cqw, 15px\)/);
   assert.match(page, /disclosure\/disclosure\.css\?v=6/);
+});
+
+test('operator scenario warning text and styles are served from a separate module', async () => {
+  const { url } = await startTestServer();
+  const [preferencesResponse, stylesResponse, pageResponse, baseStylesResponse, appResponse] = await Promise.all([
+    fetch(`${url}/scenario-disclosure/scenario-disclosure.json`),
+    fetch(`${url}/scenario-disclosure/scenario-disclosure.css`),
+    fetch(`${url}/`),
+    fetch(`${url}/styles.css`),
+    fetch(`${url}/app.js`)
+  ]);
+  const preferences = await preferencesResponse.json();
+  const styles = await stylesResponse.text();
+  const page = await pageResponse.text();
+  const baseStyles = await baseStylesResponse.text();
+  const app = await appResponse.text();
+
+  assert.equal(preferencesResponse.status, 200);
+  assert.equal(stylesResponse.status, 200);
+  assert.equal(
+    preferences.noticeTemplate,
+    'Демо-сценарий оператора включён: нажатия вводят заданные цифры ({current}/{total})'
+  );
+  assert.match(styles, /\.scripted-dial-notice/);
+  assert.match(styles, /color: #64d2ff/);
+  assert.match(page, /scenario-disclosure\/scenario-disclosure\.css\?v=1/);
+  assert.match(app, /scenario-disclosure\/scenario-disclosure\.json/);
+  assert.match(app, /DEFAULT_SCRIPTED_NOTICE_TEMPLATE/);
+  assert.doesNotMatch(baseStyles, /\.scripted-dial-notice/);
 });
 
 test('operator demo sequence is available over HTTP', async () => {

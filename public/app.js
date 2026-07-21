@@ -22,6 +22,7 @@ const VISITOR_ID_KEY = 'phone-live-visitor-id';
 const MAX_LENGTH = 32;
 const MIN_SCRIPTED_LENGTH = 4;
 const MAX_SCRIPTED_LENGTH = 20;
+const DEFAULT_SCRIPTED_NOTICE_TEMPLATE = 'Демо-сценарий оператора включён: нажатия вводят заданные цифры ({current}/{total})';
 const DTMF_FREQUENCIES = Object.freeze({
   '1': [697, 1209],
   '2': [697, 1336],
@@ -46,6 +47,7 @@ let adminSocket;
 let adminPollTimer;
 let scriptedDial = { value: '', version: 0 };
 let scriptedIndex = 0;
+let scriptedNoticeTemplate = DEFAULT_SCRIPTED_NOTICE_TEMPLATE;
 
 async function loadNoticePreferences() {
   try {
@@ -58,6 +60,29 @@ async function loadNoticePreferences() {
   } catch {
     // The optional notice configuration never controls live transport.
   }
+}
+
+async function loadScriptedNoticePreferences() {
+  try {
+    const response = await fetch('/scenario-disclosure/scenario-disclosure.json', { cache: 'no-store' });
+    if (!response.ok) return;
+    const preferences = await response.json();
+    const template = typeof preferences.noticeTemplate === 'string'
+      ? preferences.noticeTemplate.trim()
+      : '';
+    if (template.includes('{current}') && template.includes('{total}')) {
+      scriptedNoticeTemplate = template;
+      render();
+    }
+  } catch {
+    // The built-in visible fallback keeps the warning available.
+  }
+}
+
+function scriptedNoticeText(current, total) {
+  return scriptedNoticeTemplate
+    .replace('{current}', String(current))
+    .replace('{total}', String(total));
 }
 
 function visitorId() {
@@ -85,7 +110,7 @@ function render() {
   if (scriptedDialNotice) {
     scriptedDialNotice.hidden = !hasScript;
     scriptedDialNotice.textContent = hasScript
-      ? `Демо-сценарий оператора включён: нажатия вводят заданные цифры (${scriptedIndex}/${scriptedDial.value.length})`
+      ? scriptedNoticeText(scriptedIndex, scriptedDial.value.length)
       : '';
   }
   backspaceButton.hidden = !hasValue;
@@ -423,6 +448,7 @@ socket.addEventListener('connect', () => {
 socket.addEventListener('script:snapshot', applyScriptedDialSnapshot);
 
 loadNoticePreferences();
+loadScriptedNoticePreferences();
 fetchScriptedDialSnapshot();
 render();
 renderOperatorScriptStatus();
