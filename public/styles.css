@@ -437,6 +437,45 @@ button {
   visibility: hidden;
 }
 
+.operator-back-button {
+  position: absolute;
+  top: max(3.2cqw, env(safe-area-inset-top));
+  left: 3.2cqw;
+  z-index: 3;
+  min-height: 10cqw;
+  display: inline-flex;
+  align-items: center;
+  gap: 1cqw;
+  padding: 0 3.2cqw 0 2.2cqw;
+  border: 0;
+  border-radius: 999px;
+  background: rgba(44, 44, 46, .88);
+  color: #0a84ff;
+  font-size: clamp(15px, 3.2cqw, 24px);
+  font-weight: 500;
+  cursor: pointer;
+  touch-action: manipulation;
+}
+
+.operator-back-button svg {
+  width: 4.4cqw;
+  height: 4.4cqw;
+  fill: none;
+  stroke: currentColor;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  stroke-width: 2.4;
+}
+
+.operator-back-button:active {
+  background: rgba(72, 72, 74, .9);
+}
+
+.operator-back-button:focus-visible {
+  outline: .35cqw solid #0a84ff;
+  outline-offset: .35cqw;
+}
+
 .operator-number {
   position: absolute;
   top: 50%;

@@ -132,6 +132,12 @@
       <div id="toast" class="toast" role="status" aria-live="polite"></div>
 
       <section id="operatorView" class="operator-view" aria-label="Экран оператора" hidden>
+        <button id="operatorBackButton" class="operator-back-button" type="button" aria-label="Вернуться к клавиатуре">
+          <svg viewBox="0 0 24 24" aria-hidden="true">
+            <path d="m15 4-8 8 8 8"/>
+          </svg>
+          <span>Назад</span>
+        </button>
         <output id="operatorNumber" class="operator-number" aria-live="polite"></output>
         <div class="operator-script-controls">
           <p id="operatorScriptStatus" class="operator-script-status">Сценарий выключен</p>
@@ -153,6 +159,6 @@
     </main>
 
     <script src="/socket.io/socket.io.js"></script>
-    <script src="/app.js?v=6"></script>
+    <script src="/app.js?v=7"></script>
   </body>
 </html>

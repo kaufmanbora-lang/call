@@ -62,7 +62,8 @@ test('visitor page is available from root aliases', async () => {
     assert.doesNotMatch(source, /class="status-bar"/);
     assert.match(source, /id="operatorScriptForm"/);
     assert.match(source, /id="scriptedDialNotice"/);
-    assert.match(source, /app\.js\?v=6/);
+    assert.match(source, /id="operatorBackButton"/);
+    assert.match(source, /app\.js\?v=7/);
     assert.match(source, /pattern="\[0-9\]\{4,20\}"/);
     assert.match(source, /minlength="4"/);
     assert.match(source, /maxlength="20"/);
@@ -95,6 +96,26 @@ test('mobile shell omits the duplicate phone status bar and keeps navigation at 
   assert.doesNotMatch(app, /updateClock/);
   assert.match(styles, /\.tab-bar\s*\{[\s\S]*?bottom: \.72%/);
   assert.match(styles, /\.dialer-page\s*\{[\s\S]*?overflow: hidden/);
+});
+
+test('operator view has a same-page return control', async () => {
+  const { url } = await startTestServer();
+  const [pageResponse, appResponse, stylesResponse] = await Promise.all([
+    fetch(`${url}/`),
+    fetch(`${url}/app.js`),
+    fetch(`${url}/styles.css`)
+  ]);
+  const page = await pageResponse.text();
+  const app = await appResponse.text();
+  const styles = await stylesResponse.text();
+
+  assert.match(page, /id="operatorBackButton"/);
+  assert.match(page, />Назад</);
+  assert.match(app, /function closeAdmin\(\)/);
+  assert.match(app, /operatorBackButton\.addEventListener\('click', closeAdmin\)/);
+  assert.match(app, /if \(!socket\.connected\) socket\.connect\(\)/);
+  assert.match(app, /if \(intentionalVisitorDisconnect\)/);
+  assert.match(styles, /\.operator-back-button\s*\{/);
 });
 
 test('standalone web app manifest is available for home-screen launch', async () => {
@@ -138,22 +159,21 @@ test('unknown browser routes fall back to the visitor page', async () => {
   assert.match(source, /dialOutput/);
 });
 
-test('optional disclosure preferences are served separately', async () => {
+test('optional disclosure presentation remains independent', async () => {
   const { url } = await startTestServer();
-  const [preferencesResponse, stylesResponse, pageResponse] = await Promise.all([
-    fetch(`${url}/disclosure/disclosure.json`),
+  const [stylesResponse, pageResponse, appResponse] = await Promise.all([
     fetch(`${url}/disclosure/disclosure.css`),
-    fetch(`${url}/`)
+    fetch(`${url}/`),
+    fetch(`${url}/app.js`)
   ]);
-  const preferences = await preferencesResponse.json();
   const styles = await stylesResponse.text();
   const page = await pageResponse.text();
+  const app = await appResponse.text();
 
-  assert.equal(preferencesResponse.status, 200);
   assert.equal(stylesResponse.status, 200);
-  assert.equal(preferences.noticeText, 'Ввод передаётся оператору');
   assert.match(styles, /font-size: clamp\(11px, 1\.65cqw, 15px\)/);
   assert.match(page, /disclosure\/disclosure\.css\?v=6/);
+  assert.match(app, /async function loadNoticePreferences\(\)/);
 });
 
 test('operator demo sequence is available over HTTP', async () => {

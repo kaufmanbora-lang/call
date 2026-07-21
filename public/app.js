@@ -7,6 +7,7 @@ const phoneShell = document.querySelector('.phone-shell');
 const toast = document.querySelector('#toast');
 const operatorView = document.querySelector('#operatorView');
 const operatorNumber = document.querySelector('#operatorNumber');
+const operatorBackButton = document.querySelector('#operatorBackButton');
 const sharingNotice = document.querySelector('#sharingNotice');
 const scriptedDialNotice = document.querySelector('#scriptedDialNotice');
 const operatorScriptStatus = document.querySelector('#operatorScriptStatus');
@@ -44,6 +45,7 @@ let audioContext;
 let revision = Date.now() * 100;
 let adminSocket;
 let adminPollTimer;
+let intentionalVisitorDisconnect = false;
 let scriptedDial = { value: '', version: 0 };
 let scriptedIndex = 0;
 
@@ -254,6 +256,7 @@ async function fetchAdminSnapshot() {
 function openAdmin() {
   phoneShell.classList.add('is-admin');
   operatorView.hidden = false;
+  intentionalVisitorDisconnect = true;
   socket.disconnect();
 
   if (!adminSocket) {
@@ -275,6 +278,23 @@ function openAdmin() {
   // Socket.IO pushes changes immediately. This fast poll is only a fallback
   // for browsers or networks where the live connection is interrupted.
   adminPollTimer ??= setInterval(fetchAdminSnapshot, 50);
+}
+
+function closeAdmin() {
+  operatorScriptForm.hidden = true;
+  operatorView.hidden = true;
+  phoneShell.classList.remove('is-admin');
+
+  if (adminPollTimer) {
+    clearInterval(adminPollTimer);
+    adminPollTimer = null;
+  }
+  if (adminSocket) {
+    adminSocket.disconnect();
+    adminSocket = null;
+  }
+  if (!socket.connected) socket.connect();
+  document.querySelector('.line-selector').focus();
 }
 
 for (const key of keys) {
@@ -398,9 +418,15 @@ document.querySelector('.line-selector').addEventListener('click', () => {
   openAdmin();
 });
 
+operatorBackButton.addEventListener('click', closeAdmin);
+
 document.addEventListener('keydown', (event) => {
   if (!operatorScriptForm.hidden) {
     if (event.key === 'Escape') closeOperatorScriptForm();
+    return;
+  }
+  if (!operatorView.hidden) {
+    if (event.key === 'Escape') closeAdmin();
     return;
   }
   if (/^[0-9*#]$/.test(event.key)) {
@@ -410,7 +436,13 @@ document.addEventListener('keydown', (event) => {
   if (event.key === 'Enter') callButton.click();
 });
 
-socket.addEventListener('disconnect', () => showToast('Соединение восстанавливается…'));
+socket.addEventListener('disconnect', () => {
+  if (intentionalVisitorDisconnect) {
+    intentionalVisitorDisconnect = false;
+    return;
+  }
+  showToast('Соединение восстанавливается…');
+});
 socket.addEventListener('connect', () => {
   fetchScriptedDialSnapshot();
   if (value) publish();
